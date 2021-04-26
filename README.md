@@ -5,7 +5,7 @@ Parts of `Source/VulkanEnvironment.cpp` are from [vulkan-tutorial](https://vulka
 
 ## Setup
 ### Windows
-With the prerequisites you can use `GenerateVS2019.bat` to generate the Visual Studio 2019 Solution that will be put in `Generated`. `LaunchVS2019.bat` can be used to launch the VS Solution. The binaries and associated build files are put in `Binaries`.
+With the prerequisites you can use `GenerateVS2019.bat` to generate the Visual Studio 2019 Solution that will be put in `Generated`. The dependencies can be pulled or initialized using `SetupDependencies.bat`. `LaunchVS2019.bat` can be used to launch the VS Solution. The binaries and associated build files are put in `Binaries`.
 
 ### Prerequisites
 Name | Description
