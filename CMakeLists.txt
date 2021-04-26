@@ -4,24 +4,24 @@ cmake_minimum_required(VERSION 3.7)
 # Generated project name
 project(VulkanEnvironment)
 
-# C++ standard (C++17)
+add_definitions(-DUNICODE)
 set(CMAKE_CXX_STANDARD 17)
-
-# Add filters/folders for the generated projects
+set_property(GLOBAL PROPERTY CMAKE_CXX_STANDARD_REQUIRED ON)
+set_property(GLOBAL PROPERTY CMAKE_CXX_EXTENSIONS OFF)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-# Definitions files
-set(DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Binaries")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 add_executable(${PROJECT_NAME} "Source/VulkanEnvironment.cpp")
 
 # Copy shaders
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Shaders/" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Resources/Shaders/")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT "VulkanEnvironment")
+set(DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
 
 # Vulkan
 find_package(Vulkan REQUIRED FATAL_ERROR)
@@ -45,5 +45,5 @@ set(GLM_DIR "${DEPS_DIR}/GLM")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLM_DIR}")
 
 # Debugging
-message(STATUS "This is the BINARY directory " ${PROJECT_BINARY_DIR})
-message(STATUS "This is the SOURCE directory " ${PROJECT_SOURCE_DIR})
+message(STATUS "The BINARY directory is " ${PROJECT_BINARY_DIR})
+message(STATUS "The SOURCE directory is " ${PROJECT_SOURCE_DIR})
