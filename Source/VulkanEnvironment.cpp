@@ -35,26 +35,18 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
+VkResult CreateDebugUtilsMessengerEXT(VkInstance anInstance, const VkDebugUtilsMessengerCreateInfoEXT* aCreateInfo, const VkAllocationCallbacks* anAllocator, VkDebugUtilsMessengerEXT* aDebugMessenger)
 {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr)
-    {
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    }
-    else
-    {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
+    if (PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(anInstance, "vkCreateDebugUtilsMessengerEXT")))
+        return vkCreateDebugUtilsMessengerEXT(anInstance, aCreateInfo, anAllocator, aDebugMessenger);
+    
+    return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
+void DestroyDebugUtilsMessengerEXT(VkInstance anInstance, VkDebugUtilsMessengerEXT aDebugMessenger, const VkAllocationCallbacks* anAllocator)
 {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func != nullptr)
-    {
-        func(instance, debugMessenger, pAllocator);
-    }
+    if (PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(anInstance, "vkDestroyDebugUtilsMessengerEXT")))
+        vkDestroyDebugUtilsMessengerEXT(anInstance, aDebugMessenger, anAllocator);
 }
 
 struct QueueFamilyIndices
@@ -122,12 +114,12 @@ const std::vector<uint16_t> indices = {
 class HelloTriangleApplication
 {
 public:
-    void run()
+    void Run()
     {
-        initWindow();
-        initVulkan();
-        mainLoop();
-        cleanup();
+        InitializeWindow();
+        InitializeVulkan();
+        Update();
+        Destroy();
     }
 
 private:
@@ -171,24 +163,29 @@ private:
 
     bool framebufferResized = false;
 
-    void initWindow()
+    void InitializeWindow()
     {
-        glfwInit();
+        if (!glfwInit())
+        {
+            std::cout << "Failed to initialize GLFW" << std::endl;
+            glfwTerminate();
+            return;
+        }
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Environment", nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+        glfwSetFramebufferSizeCallback(window, FrameBufferSizeCallback);
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+    static void FrameBufferSizeCallback(GLFWwindow* aWindow, int /*aWidth*/, int /*aHeight*/)
     {
-        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(aWindow));
         app->framebufferResized = true;
     }
 
-    void initVulkan()
+    void InitializeVulkan()
     {
         createInstance();
         setupDebugMessenger();
@@ -207,7 +204,7 @@ private:
         createSyncObjects();
     }
 
-    void mainLoop()
+    void Update()
     {
         while (!glfwWindowShouldClose(window))
         {
@@ -239,7 +236,7 @@ private:
         vkDestroySwapchainKHR(device, swapChain, nullptr);
     }
 
-    void cleanup()
+    void Destroy()
     {
         cleanupSwapChain();
 
@@ -306,7 +303,7 @@ private:
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Hello Triangle";
+        appInfo.pApplicationName = "Vulkan Environment";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -581,17 +578,19 @@ private:
 
     void createGraphicsPipeline()
     {
-        const std::string& currentPath = std::filesystem::current_path().string();
-        std::string shadersPath;
-        if (currentPath.find("Debug") != std::string::npos)
+       const std::string& currentPath = std::filesystem::current_path().string();
+       std::string resourcesPath;
+        if (currentPath.find("Binaries") == std::string::npos && currentPath.find("Debug") == std::string::npos)
         {
-            shadersPath = currentPath + "/Resources/Shaders/";
+            const std::string generatedString = "\\Generated";
+            resourcesPath = currentPath.substr(0, currentPath.length() - generatedString.length()) + "\\Binaries\\Debug\\Resources\\";
         }
         else
         {
-            shadersPath = currentPath + "/Debug/Resources/Shaders/";
+            resourcesPath = currentPath + "\\Resources\\";
         }
 
+        const std::string shadersPath = resourcesPath + "Shaders\\";
         auto vertShaderCode = readFile(shadersPath + "VertexShader.vert.spv");
         auto fragShaderCode = readFile(shadersPath + "FragmentShader.frag.spv");
 
@@ -1270,11 +1269,11 @@ int main()
 
     try
     {
-        app.run();
+        app.Run();
     }
-    catch (const std::exception& e)
+    catch (const std::exception& anException)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << anException.what() << std::endl;
         return EXIT_FAILURE;
     }
 
