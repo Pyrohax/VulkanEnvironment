@@ -578,12 +578,17 @@ private:
 
     void createGraphicsPipeline()
     {
-       const std::string& currentPath = std::filesystem::current_path().string();
-       std::string resourcesPath;
-        if (currentPath.find("Binaries") == std::string::npos && currentPath.find("Debug") == std::string::npos)
+        const std::string& currentPath = std::filesystem::current_path().string();
+        std::string resourcesPath;
+
+        std::string config = "Debug";
+#ifndef _DEBUG
+        config = "Release";
+#endif
+        if (currentPath.find("Binaries") == std::string::npos && currentPath.find(config) == std::string::npos)
         {
             const std::string generatedString = "\\Generated";
-            resourcesPath = currentPath.substr(0, currentPath.length() - generatedString.length()) + "\\Binaries\\Debug\\Resources\\";
+            resourcesPath = currentPath.substr(0, currentPath.length() - generatedString.length()) + "\\Binaries\\" + config + "\\Resources\\";
         }
         else
         {
